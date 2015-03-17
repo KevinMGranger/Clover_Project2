@@ -2,14 +2,20 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class Deck : MonoBehaviour {
+public class Deck {
 
 	public List<Card> cards = new List<Card>();
 	public TextAsset cardStuff;
 	private static int numCards;
 
+	public int cardCount
+	{
+		get { return cards.Count; }
+	}
+			
+
 	// Use this for initialization
-	void Start () 
+	public Deck() 
 	{
 		numCards = 30;
 		GenerateDeck ();
@@ -26,8 +32,7 @@ public class Deck : MonoBehaviour {
 	{
 		for (int i = 0; i < cards.Count; i++) {
 			Card temp = cards[i];
-			int randomIndex = Random.Range(i, cards.Count);
-			cards[i] = cards[randomIndex];
+			int randomIndex = Random.Range(i, cards.Count); cards[i] = cards[randomIndex];
 			cards[randomIndex] = temp;
 		}
 	}

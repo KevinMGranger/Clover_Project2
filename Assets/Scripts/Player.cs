@@ -21,7 +21,8 @@ public class Player {
     public int defense;
 
 	// Use this for initialization
-	void Start () {
+	public Player()
+	{
 
         // if player has no health initially, start player with max health.
         if(Health <= 0)

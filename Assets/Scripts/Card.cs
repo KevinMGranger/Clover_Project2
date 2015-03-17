@@ -21,7 +21,7 @@ public enum EffectType
 	bind
 }
 
-public class Card{
+public class Card : MonoBehaviour {
 
 	public CardType type;
 	public string cardName;
@@ -31,6 +31,7 @@ public class Card{
 	private int effectStrength1;
 	public EffectType effect2;
 	private int effectStrength2;
+	public Controller controller;
 
 	// Use this for initialization
 	void Start () {
