@@ -5,56 +5,55 @@ using System.Collections;
 using UnityEngine.EventSystems;
 using System;
 
-[Flags]
-public enum GameState
-{
-	None = 0x0,
-	Player1Deciding = 0x1,
-	Player2Deciding = 0x2,
-	Player1Chosen = 0x4,
-	Player2Chosen = 0x8
-}
 
-public class Controller2 : MonoBehaviour {
+public class Controller2 : MonoBehaviour, IPlayerCardEventHandler {
 	private Player p1;
 	private Player p2;
-	private Card c1, c2;
-	private GameObject go1, go2;
 
-	[HideInInspector]
-	public GameState state = GameState.Player1Deciding | GameState.Player2Deciding;
+	public BattleLogger log;
 
 	public GameObject cardPrototype;
-	public GameObject textPrototype;
-	public RectTransform logWindow;
 
-	public Transform hand1, hand2;
 
-	// Use this for initialization
-	void Start () {
-		// initialize a name for the player. (Player class takes at least a name)
-		p1 = new Player ("James", hand1, cardPrototype, BattleLog);
-		p2 = new Player ("Sung", hand2, cardPrototype, BattleLog);
+	void Start()
+	{
+		p1 = new Player ("One", new Hand(), new Deck(), this);
+		p2 = new Player ("Two", new Hand(), new Deck(), this);
 	}
 	
-	// Update is called once per frame
 	void Update () {
+		ProcessInput();
+	}
+
+	void ProcessInput()
+	{
+		if (!Input.anyKeyDown) return;
+
+		if (Input.GetKeyDown(KeyCode.Q)) p1.playCard(0);
+		else if (Input.GetKeyDown(KeyCode.A)) p1.playCard(1);
+		else if (Input.GetKeyDown(KeyCode.Z)) p1.playCard(2);
 	}
 
 	/// <summary>
-	/// Print a message to the battle log, resizing it as necessary.
+	/// Print a message to the battle log.
 	/// </summary>
 	/// <param name="message"></param>
 	void BattleLog(string message)
 	{
-		Debug.Log("BattleLog: " + message);
-		var txt = Instantiate(textPrototype) as GameObject;
-
-		txt.GetComponent<Text>().text = message;
-
-		txt.transform.SetParent(logWindow, false);
+		log.Log(message);
 	}
 
+	#region Event Handlers
+
+	public void CardDrawn(Player player, Card card)
+	{
+		BattleLog(player + " draws " + card.cardName);
+	}
+
+	/// <summary>
+	/// React to a selected card.
+	/// </summary>
+	/// <param name="card"></param>
 	public void CardClicked(GameObject card)
 	{
 		var uiCard = card.GetComponent<UICard>();
@@ -62,14 +61,9 @@ public class Controller2 : MonoBehaviour {
 
 		var owner = uiCard.owner;
 
-		if ((state & GameState.Player1Deciding) == GameState.Player1Deciding)
-			if (owner == p1)
-			{
-				c1 = uiCard.card;
-				go1 = card;
-				BattleLog("Player " + p1.Name + " picked " + uiCard.card.ToString());
-				state = state | GameState.Player1Chosen ^ GameState.Player1Deciding;
-			}
+		if (owner.CanPickCard) {
+			owner.cardChoice = uiCard;
+
 
 		if ((state & GameState.Player2Deciding) == GameState.Player2Deciding)
 			if (owner == p2)
@@ -93,6 +87,7 @@ public class Controller2 : MonoBehaviour {
 				state = GameState.Player1Deciding | GameState.Player2Deciding;
 			}
 	}
+	#endregion
 
 	public void CardChecks(Player p1, Player p2, Card p1Card, Card p2Card)
 	{
@@ -175,4 +170,5 @@ public class Controller2 : MonoBehaviour {
 		BattleLog("Player " + p1.Name + " now has " + p1.Health + "HP");
 		BattleLog("Player " + p2.Name + " now has " + p2.Health + "HP");
 	}
+
 }
