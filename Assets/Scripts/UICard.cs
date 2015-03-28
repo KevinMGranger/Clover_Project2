@@ -16,4 +16,9 @@ public class UICard : MonoBehaviour {
 	void Update () {
 	
 	}
+
+	public static implicit operator Card(UICard self)
+	{
+		return self.card;
+	}
 }

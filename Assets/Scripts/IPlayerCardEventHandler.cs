@@ -8,7 +8,7 @@ interface IPlayerCardEventHandler : IEventSystemHandler
 
 	void CardChosen(Player player, Card card);
 	
-	void CardChosen(Player player, UICard card);
+	void CardChosen(UICard card);
 
 	void CardPlayed(Player player, Card card);
 }

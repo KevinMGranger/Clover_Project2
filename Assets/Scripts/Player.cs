@@ -12,11 +12,9 @@ public class Player : MonoBehaviour
 		Dead
 	}
 
-	public const int MAX_HEALTH = 20;
-
 	public int Health;
 	public string Name;
-	public UICard cardChoice = null;
+	public Card cardChoice = null;
 	public Deck deck;
 	public Hand hand;
 	public State state;
@@ -25,11 +23,6 @@ public class Player : MonoBehaviour
 
 	void Start()
 	{
-		Health = MAX_HEALTH;
-		for (int i = 0; i < 3; i++)
-		{
-			draw();
-		}
 	}
 
 	void Update()
@@ -44,24 +37,45 @@ public class Player : MonoBehaviour
 		}
 	}
 
-	public UICard CardChoice
+	public bool HasChosen
+	{
+		get
+		{
+			return state == State.Chosen;
+		}
+	}
+
+	public Card CardChoice
 	{
 		get { return cardChoice; }
 		set
 		{
-			if (value != null && CanPickCard)
-			{
-				cardChoice = value;
-				ExecuteEvents.Execute<IPlayerCardEventHandler>(playerCardEventHandler, null, (x, y) => x.CardChosen(this, value));
-			}
+			cardChoice = value;
+			state = State.Chosen;
 		}
 	}
 
-	public void discard(Card card)
+	/// <summary>
+	/// Reset the chosen card and associated player state
+	/// </summary>
+	public void ResetChoice()
 	{
-		hand.Discard(card);
+		state = State.Deciding;
+		cardChoice = null;
 	}
 
+	public bool drawTillFull()
+	{
+		for (int i = 0; i < Hand.HAND_SIZE; i++)
+		{
+			if (!draw()) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	// TODO: replace with exception
 	public bool draw()
 	{
 		if (hand.IsFull)
@@ -86,38 +100,18 @@ public class Player : MonoBehaviour
 			return false;
 		}
 
+		return true;
 	}
 
 	// meant to handle when the player is struck by enemy card. 
 	public void TakeDamage(int i)
 	{
 		Health -= i;
-		Log("Player " + Name + " Takes " + i + " damage!");
-	}
-
-	public Card playCard(int cardToPlay)
-	{
-		// Player will choose a card from their hand.
-		// This will eventually be associated with a button press on the card. 
-
-		switch (cardToPlay)
-		{
-			case 1:
-				cardChoice = hand[0];
-				break;
-			case 2:
-				cardChoice = hand[1];
-				break;
-			case 3:
-				cardChoice = hand[2];
-				break;
-		}
-		return cardChoice;
+		Debug.Log("Player " + Name + " Takes " + i + " damage!");
 	}
 
 	public override string ToString()
 	{
 		return "Player " + Name;
 	}
-
 }

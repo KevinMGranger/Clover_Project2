@@ -1,15 +1,29 @@
-﻿using System.Linq;
+﻿using UnityEngine;
+using UnityEngine.EventSystems;
+using System.Collections;
+using System.Linq;
 
-public class Hand
+public class Hand : MonoBehaviour
 {
-	const int HAND_SIZE = 3;
-	public Card[] hand = new Card[HAND_SIZE];
+	/// <summary>
+	/// Keys listed in order to be associated with the hand of cards
+	/// </summary>
+	public KeyCode[] keyList;
+
+	public GameObject playerCardEventHandler;
+
+	public const int HAND_SIZE = 3;
+
+	public Player thisPlayer;
+
+	public GameObject cardPrototype;
+
 
 	public int Count
 	{
 		get
 		{
-			return hand.Count((x) => x != null);
+			return GetComponentsInChildren<UICard>().Count((x) => x != null);
 		}
 	}
 
@@ -29,21 +43,12 @@ public class Hand
 		}
 	}
 
-	/// <summary>
-	/// Discard the given card from the hand.
-	/// </summary>
-	/// <param name="card"></param>
-	/// <returns>True if discarded, false if not found.</returns>
-	public bool Discard(Card card)
+	public UICard this[int value]
 	{
-		for (int i = 0; i < hand.Length; i++) {
-			if (hand[i] == card) {
-				hand[i] = null;
-				return true;
-			}
+		get
+		{
+			return GetComponentsInChildren<UICard>()[value];
 		}
-
-		return false;
 	}
 
 	/// <summary>
@@ -53,15 +58,44 @@ public class Hand
 	/// <returns>True if successful, false if full.</returns>
 	public bool Insert(Card card)
 	{
-		for (int i = 0; i < hand.Length; i++)
-		{
-			if (hand[i] == null)
-			{
-				hand[i] = card;
-				return true;
-			}
-		}
+		if (!IsFull) {
+			var cardGO = Instantiate(cardPrototype) as GameObject;
+			var uicard = cardGO.GetComponent<UICard>();
 
+			uicard.card = card;
+			uicard.owner = thisPlayer;
+
+			cardGO.transform.parent = this.transform;
+
+			return true;
+		}
 		return false;
 	}
+
+	void Start()
+	{
+		thisPlayer = (thisPlayer) ? thisPlayer : GetComponent<Player>();
+	}
+
+	// TODO: make each card listen for itself?
+	void Update()
+	{
+		if (!Input.anyKeyDown) return;
+
+		for (int i = 0; i < keyList.Length; i++)
+		{
+			var key = keyList[i];
+
+			if (Input.GetKeyDown(key))
+			{
+				var card = this[i];
+				ExecuteEvents.ExecuteHierarchy<IPlayerCardEventHandler>(
+					playerCardEventHandler,
+					null,
+					(x, y) => x.CardChosen(card)
+				);
+			}
+		}
+	}
+
 }
